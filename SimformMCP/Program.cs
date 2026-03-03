@@ -1,0 +1,50 @@
+﻿using Microsoft.Extensions.Hosting;
+using ModelContextProtocol.Server;
+
+// ── If launched by VS Code via stdio ───────────────────────
+if (args.Contains("--stdio"))
+{
+    var stdioBuilder = Host.CreateApplicationBuilder(args);
+
+    stdioBuilder.Logging.AddConsole(o =>
+        o.LogToStandardErrorThreshold = LogLevel.Trace);
+
+    stdioBuilder.Configuration.AddJsonFile("appsettings.json", optional: false);
+
+    stdioBuilder.Services
+        .AddHttpClient()
+        .AddSingleton<ZohoAuthService>()
+        .AddSingleton<ZohoService>();
+
+    stdioBuilder.Services
+        .AddMcpServer()
+        .WithStdioServerTransport()
+        .WithToolsFromAssembly();
+
+    await stdioBuilder.Build().RunAsync();
+    return;
+}
+
+// ── Default: HTTP/SSE mode for Power Automate & Teams ──────
+var webBuilder = WebApplication.CreateBuilder(args);
+
+webBuilder.Logging.AddConsole(o =>
+    o.LogToStandardErrorThreshold = LogLevel.Trace);
+
+webBuilder.Configuration.AddJsonFile("appsettings.json", optional: false);
+
+webBuilder.Services
+    .AddHttpClient()
+    .AddSingleton<ZohoAuthService>()
+    .AddSingleton<ZohoService>();
+
+webBuilder.Services
+    .AddMcpServer()
+    .WithHttpTransport()
+    .WithToolsFromAssembly();
+
+var app = webBuilder.Build();
+
+app.MapMcp();
+
+await app.RunAsync();

@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "SimformMCP": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": ["run", "--project", "C:\\Users\\saurabh.davda\\Zoho\\SimformMCP", "--", "--stdio"]
+    }
+  }
+}
