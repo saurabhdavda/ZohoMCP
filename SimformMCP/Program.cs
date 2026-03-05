@@ -9,7 +9,7 @@ if (args.Contains("--stdio"))
         o.LogToStandardErrorThreshold = LogLevel.Trace);
 
     stdioBuilder.Configuration.AddJsonFile(
-    Path.Combine(basePath, "appsettings.json"), optional: false);
+    Path.Combine(basePath, "appsettings.json"), optional: true);
 
     stdioBuilder.Services
         .AddHttpClient()
@@ -31,7 +31,8 @@ var webBuilder = WebApplication.CreateBuilder(args);
 webBuilder.Logging.AddConsole(o =>
     o.LogToStandardErrorThreshold = LogLevel.Trace);
 
-webBuilder.Configuration.AddJsonFile(Path.Combine(basePath, "appsettings.json"), optional: true);
+webBuilder.Configuration.AddJsonFile(Path.Combine(basePath, "appsettings.json"), optional: true)
+.AddEnvironmentVariables();
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
 webBuilder.WebHost.UseUrls($"http://0.0.0.0:{port}");
