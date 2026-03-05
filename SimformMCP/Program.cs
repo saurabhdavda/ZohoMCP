@@ -9,7 +9,8 @@ if (args.Contains("--stdio"))
         o.LogToStandardErrorThreshold = LogLevel.Trace);
 
     stdioBuilder.Configuration.AddJsonFile(
-    Path.Combine(basePath, "appsettings.json"), optional: true);
+    Path.Combine(basePath, "appsettings.json"), optional: true)
+    .AddEnvironmentVariables();;
 
     stdioBuilder.Services
         .AddHttpClient()
