@@ -52,6 +52,7 @@ var app = webBuilder.Build();
 
 app.MapGet("/", () => "Zoho MCP Server Running");
 
-app.MapMcp();
+app.MapMcp("/mcp");
+// app.MapMcp();
 
 await app.RunAsync();
