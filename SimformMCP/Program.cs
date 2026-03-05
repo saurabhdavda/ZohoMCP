@@ -1,5 +1,7 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿﻿using Microsoft.Extensions.Hosting;
 using ModelContextProtocol.Server;
+
+var basePath = AppContext.BaseDirectory;
 
 // ── If launched by VS Code via stdio ───────────────────────
 if (args.Contains("--stdio"))
@@ -9,7 +11,8 @@ if (args.Contains("--stdio"))
     stdioBuilder.Logging.AddConsole(o =>
         o.LogToStandardErrorThreshold = LogLevel.Trace);
 
-    stdioBuilder.Configuration.AddJsonFile("appsettings.json", optional: false);
+    stdioBuilder.Configuration.AddJsonFile(
+    Path.Combine(basePath, "appsettings.json"), optional: false);
 
     stdioBuilder.Services
         .AddHttpClient()
@@ -31,7 +34,7 @@ var webBuilder = WebApplication.CreateBuilder(args);
 webBuilder.Logging.AddConsole(o =>
     o.LogToStandardErrorThreshold = LogLevel.Trace);
 
-webBuilder.Configuration.AddJsonFile("appsettings.json", optional: false);
+webBuilder.Configuration.AddJsonFile(Path.Combine(basePath, "appsettings.json"), optional: false);
 
 webBuilder.Services
     .AddHttpClient()

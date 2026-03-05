@@ -3,7 +3,17 @@
     "SimformMCP": {
       "type": "stdio",
       "command": "dotnet",
-      "args": ["run", "--project", "C:\\Users\\saurabh.davda\\Zoho\\SimformMCP", "--", "--stdio"]
+      "args": [
+        "run",
+        "--project",
+        "C:\\Users\\saurabh.davda\\Zoho\\SimformMCP",
+        "--",
+        "--stdio"
+      ],
+      "env": {
+        "DOTNET_ENVIRONMENT": "Production"
+      },
+      "cwd": "C:\\Users\\saurabh.davda\\Zoho\\SimformMCP"
     }
   }
 }

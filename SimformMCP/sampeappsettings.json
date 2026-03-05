@@ -1,6 +1,3 @@
-This all is require to get from Zoho:
-
-```
 {
   "Zoho": {
     "ClientId": "Client ID from Zoho",
@@ -10,4 +7,3 @@ This all is require to get from Zoho:
   },
   "Urls": "http://localhost:5000"
 }
-```

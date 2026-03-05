@@ -9,7 +9,7 @@ public class ZohoService
     private readonly HttpClient _http;
 
     private string PortalId => _config["Zoho:PortalId"]!;
-    private string BaseUrl => $"https://projectsapi.zoho.com/restapi/portal/{PortalId}";
+    private string BaseUrl => $"https://projectsapi.zoho.in/restapi/portal/{PortalId}";
 
     public ZohoService(IConfiguration config, ZohoAuthService auth, IHttpClientFactory factory)
     {
