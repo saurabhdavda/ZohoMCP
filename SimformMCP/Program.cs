@@ -1,9 +1,6 @@
-﻿﻿using Microsoft.Extensions.Hosting;
-using ModelContextProtocol.Server;
+﻿﻿var basePath = AppContext.BaseDirectory;
 
-var basePath = AppContext.BaseDirectory;
-
-// ── If launched by VS Code via stdio ───────────────────────
+// If launched by VS Code via stdio
 if (args.Contains("--stdio"))
 {
     var stdioBuilder = Host.CreateApplicationBuilder(args);
@@ -28,7 +25,7 @@ if (args.Contains("--stdio"))
     return;
 }
 
-// ── Default: HTTP/SSE mode for Power Automate & Teams ──────
+// HTTP/SSE mode for Power Automate & Teams
 var webBuilder = WebApplication.CreateBuilder(args);
 
 webBuilder.Logging.AddConsole(o =>

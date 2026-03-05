@@ -5,47 +5,154 @@ using System.ComponentModel;
 public class ZohoTools
 {
     private readonly ZohoService _zoho;
+    public ZohoTools(ZohoService zoho) => _zoho = zoho;
 
-    public ZohoTools(ZohoService zoho)
-    {
-        _zoho = zoho;
-    }
+    // ══════════════════════════════════════════════════════
+    // PROJECTS
+    // ══════════════════════════════════════════════════════
 
     [McpServerTool]
-    [Description("Get all projects from Zoho. Call this first to find the projectId before creating tasks.")]
+    [Description("Get all projects from Zoho. Call this first to find projectId.")]
     public async Task<string> GetProjects()
     {
         var projects = await _zoho.GetProjectsAsync();
-
-        if (!projects.Any())
-            return "No projects found in Zoho.";
-
-        return string.Join("\n", projects.Select(p => $"• ID: {p.Id} | Name: {p.Name}"));
+        return projects.Any()
+            ? string.Join("\n", projects.Select(p => $"• ID: {p.Id} | Name: {p.Name}"))
+            : "No projects found.";
     }
 
     [McpServerTool]
-    [Description("Get all task lists inside a Zoho project. Call this to find taskListId before creating a task.")]
+    [Description("Create a new Zoho project.")]
+    public async Task<string> CreateProject(
+        [Description("Project name")]             string projectName,
+        [Description("Description")]              string? description = null,
+        [Description("Start date YYYY-MM-DD")]    string? startDate   = null,
+        [Description("End date YYYY-MM-DD")]      string? endDate     = null,
+        [Description("Owner email")]              string? ownerEmail  = null)
+    {
+        var result = await _zoho.CreateProjectAsync(new CreateProjectRequest
+        {
+            ProjectName = projectName,
+            Description = description,
+            StartDate   = startDate,
+            EndDate     = endDate,
+            OwnerEmail  = ownerEmail
+        });
+        return result.Success ? $"✅ {result.Message} | ID: {result.Id}" : $"❌ {result.Message}";
+    }
+
+    [McpServerTool]
+    [Description("Update an existing Zoho project. Only provide fields to change.")]
+    public async Task<string> UpdateProject(
+        [Description("Project ID")]                          string  projectId,
+        [Description("New name")]                            string? projectName = null,
+        [Description("New description")]                     string? description = null,
+        [Description("New start date YYYY-MM-DD")]           string? startDate   = null,
+        [Description("New end date YYYY-MM-DD")]             string? endDate     = null,
+        [Description("Status: active or archived")]          string? status      = null)
+    {
+        var result = await _zoho.UpdateProjectAsync(new UpdateProjectRequest
+        {
+            ProjectId   = projectId,
+            ProjectName = projectName,
+            Description = description,
+            StartDate   = startDate,
+            EndDate     = endDate,
+            Status      = status
+        });
+        return result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
+    }
+
+    [McpServerTool]
+    [Description("Permanently delete a Zoho project by ID.")]
+    public async Task<string> DeleteProject(
+        [Description("Project ID to delete")] string projectId)
+    {
+        var result = await _zoho.DeleteProjectAsync(projectId);
+        return result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
+    }
+
+    // ══════════════════════════════════════════════════════
+    // TASK LISTS
+    // ══════════════════════════════════════════════════════
+
+    [McpServerTool]
+    [Description("Get all task lists in a Zoho project.")]
     public async Task<string> GetTaskLists(
-        [Description("Zoho Project ID — get this from GetProjects first")] string projectId)
+        [Description("Project ID")] string projectId)
     {
         var lists = await _zoho.GetTaskListsAsync(projectId);
-
-        if (!lists.Any())
-            return $"No task lists found for project {projectId}.";
-
-        return string.Join("\n", lists.Select(l => $"• ID: {l.Id} | Name: {l.Name}"));
+        return lists.Any()
+            ? string.Join("\n", lists.Select(l => $"• ID: {l.Id} | Name: {l.Name}"))
+            : $"No task lists found for project {projectId}.";
     }
 
     [McpServerTool]
-    [Description("Create a new task in Zoho Projects under a specific task list.")]
+    [Description("Create a new task list inside a Zoho project.")]
+    public async Task<string> CreateTaskList(
+        [Description("Project ID")]      string projectId,
+        [Description("Task list name")]  string taskListName)
+    {
+        var result = await _zoho.CreateTaskListAsync(new CreateTaskListRequest
+        {
+            ProjectId    = projectId,
+            TaskListName = taskListName
+        });
+        return result.Success ? $"✅ {result.Message} | ID: {result.Id}" : $"❌ {result.Message}";
+    }
+
+    [McpServerTool]
+    [Description("Rename an existing task list in a Zoho project.")]
+    public async Task<string> UpdateTaskList(
+        [Description("Project ID")]       string  projectId,
+        [Description("Task List ID")]     string  taskListId,
+        [Description("New name")]         string? taskListName = null)
+    {
+        var result = await _zoho.UpdateTaskListAsync(new UpdateTaskListRequest
+        {
+            ProjectId    = projectId,
+            TaskListId   = taskListId,
+            TaskListName = taskListName
+        });
+        return result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
+    }
+
+    [McpServerTool]
+    [Description("Delete a task list from a Zoho project.")]
+    public async Task<string> DeleteTaskList(
+        [Description("Project ID")]    string projectId,
+        [Description("Task List ID")]  string taskListId)
+    {
+        var result = await _zoho.DeleteTaskListAsync(projectId, taskListId);
+        return result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
+    }
+
+    // ══════════════════════════════════════════════════════
+    // TASKS
+    // ══════════════════════════════════════════════════════
+
+    [McpServerTool]
+    [Description("Get all tasks inside a task list.")]
+    public async Task<string> GetTasks(
+        [Description("Project ID")]   string projectId,
+        [Description("TaskList ID")]  string taskListId)
+    {
+        var tasks = await _zoho.GetTasksAsync(projectId, taskListId);
+        return tasks.Any()
+            ? string.Join("\n", tasks.Select(t => $"• ID: {t.Id} | Name: {t.Name}"))
+            : "No tasks found in this task list.";
+    }
+
+    [McpServerTool]
+    [Description("Create a new task inside a task list.")]
     public async Task<string> CreateTask(
-        [Description("Zoho Project ID")]                          string projectId,
-        [Description("Task List ID inside the project")]          string taskListId,
-        [Description("Name of the task")]                         string taskName,
-        [Description("Optional task description")]                string? description = null,
-        [Description("Assignee email address")]                   string? assigneeEmail = null,
-        [Description("Due date in YYYY-MM-DD format")]            string? dueDate = null,
-        [Description("Priority: high, medium, or low")]           string? priority = null)
+        [Description("Project ID")]                string  projectId,
+        [Description("Task List ID")]              string  taskListId,
+        [Description("Task name")]                 string  taskName,
+        [Description("Description")]               string? description   = null,
+        [Description("Assignee email")]            string? assigneeEmail = null,
+        [Description("Due date YYYY-MM-DD")]       string? dueDate       = null,
+        [Description("Priority: high/medium/low")] string? priority      = null)
     {
         var result = await _zoho.CreateTaskAsync(new CreateTaskRequest
         {
@@ -57,45 +164,19 @@ public class ZohoTools
             DueDate       = dueDate,
             Priority      = priority
         });
-
-        return result.Success
-            ? $"✅ {result.Message}\n🔗 {result.Url}"
-            : $"❌ Failed: {result.Message}";
+        return result.Success ? $"✅ {result.Message}\n🔗 {result.Url}" : $"❌ {result.Message}";
     }
 
     [McpServerTool]
-    [Description("Create a brand new project in Zoho Projects.")]
-    public async Task<string> CreateProject(
-        [Description("Project name")]                string projectName,
-        [Description("Project description")]         string? description = null,
-        [Description("Start date in YYYY-MM-DD")]    string? startDate = null,
-        [Description("End date in YYYY-MM-DD")]      string? endDate = null,
-        [Description("Owner email address")]         string? ownerEmail = null)
-    {
-        var result = await _zoho.CreateProjectAsync(new CreateProjectRequest
-        {
-            ProjectName = projectName,
-            Description = description,
-            StartDate   = startDate,
-            EndDate     = endDate,
-            OwnerEmail  = ownerEmail
-        });
-
-        return result.Success
-            ? $"✅ {result.Message} | Project ID: {result.Id}"
-            : $"❌ Failed: {result.Message}";
-    }
-
-    [McpServerTool]
-    [Description("Update an existing task in Zoho. Only provide the fields you want to change.")]
+    [Description("Update an existing task. Only provide fields to change.")]
     public async Task<string> UpdateTask(
-        [Description("Zoho Project ID")]                       string projectId,
-        [Description("Zoho Task ID")]                          string taskId,
-        [Description("New task name")]                         string? taskName = null,
-        [Description("New description")]                       string? description = null,
-        [Description("Status: open, inprogress, or closed")]   string? status = null,
-        [Description("Priority: high, medium, or low")]        string? priority = null,
-        [Description("New due date in YYYY-MM-DD")]            string? dueDate = null)
+        [Description("Project ID")]                          string  projectId,
+        [Description("Task ID")]                             string  taskId,
+        [Description("New name")]                            string? taskName    = null,
+        [Description("New description")]                     string? description = null,
+        [Description("Status: open/inprogress/closed")]      string? status      = null,
+        [Description("Priority: high/medium/low")]           string? priority    = null,
+        [Description("New due date YYYY-MM-DD")]             string? dueDate     = null)
     {
         var result = await _zoho.UpdateTaskAsync(new UpdateTaskRequest
         {
@@ -107,9 +188,16 @@ public class ZohoTools
             Priority    = priority,
             DueDate     = dueDate
         });
+        return result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
+    }
 
-        return result.Success
-            ? $"✅ {result.Message}"
-            : $"❌ Failed: {result.Message}";
+    [McpServerTool]
+    [Description("Delete a task from a Zoho project.")]
+    public async Task<string> DeleteTask(
+        [Description("Project ID")] string projectId,
+        [Description("Task ID")]    string taskId)
+    {
+        var result = await _zoho.DeleteTaskAsync(projectId, taskId);
+        return result.Success ? $"✅ {result.Message}" : $"❌ {result.Message}";
     }
 }
