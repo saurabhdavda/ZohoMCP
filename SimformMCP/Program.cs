@@ -33,6 +33,9 @@ webBuilder.Logging.AddConsole(o =>
 
 webBuilder.Configuration.AddJsonFile(Path.Combine(basePath, "appsettings.json"), optional: false);
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+webBuilder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 webBuilder.Services
     .AddHttpClient()
     .AddSingleton<ZohoAuthService>()
