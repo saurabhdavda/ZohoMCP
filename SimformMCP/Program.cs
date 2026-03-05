@@ -31,7 +31,7 @@ var webBuilder = WebApplication.CreateBuilder(args);
 webBuilder.Logging.AddConsole(o =>
     o.LogToStandardErrorThreshold = LogLevel.Trace);
 
-webBuilder.Configuration.AddJsonFile(Path.Combine(basePath, "appsettings.json"), optional: false);
+webBuilder.Configuration.AddJsonFile(Path.Combine(basePath, "appsettings.json"), optional: true);
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
 webBuilder.WebHost.UseUrls($"http://0.0.0.0:{port}");
