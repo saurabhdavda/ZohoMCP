@@ -10,7 +10,7 @@ if (args.Contains("--stdio"))
 
     stdioBuilder.Configuration.AddJsonFile(
     Path.Combine(basePath, "appsettings.json"), optional: true)
-    .AddEnvironmentVariables();;
+    .AddEnvironmentVariables();
 
     stdioBuilder.Services
         .AddHttpClient()

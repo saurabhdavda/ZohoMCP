@@ -40,9 +40,8 @@ public class ZohoService
         _http.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Zoho-oauthtoken", token);
     }
-    
-    // PROJECTS
 
+    // PROJECTS
     public async Task<List<ZohoResult>> GetProjectsAsync()
     {
         await AuthorizeAsync();
@@ -97,13 +96,24 @@ public class ZohoService
         if (req.EndDate != null) body["end_date"] = ConvertDate(req.EndDate)!;
         if (req.Status != null) body["status"] = req.Status;
 
+        if (body.Count == 0)
+            return new ZohoResult { Success = false, Message = "No fields provided to update." };
+
         var response = await _http.PostAsync(
             $"{BaseUrl}/projects/{req.ProjectId}/",
             new FormUrlEncodedContent(body));
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        var rawResponse = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"[UpdateProject] Status: {response.StatusCode}");
+        Console.WriteLine($"[UpdateProject] Body sent: {string.Join(", ", body.Select(k => $"{k.Key}={k.Value}"))}");
+        Console.WriteLine($"[UpdateProject] Response: {rawResponse}");
 
         if (!response.IsSuccessStatusCode)
-            return new ZohoResult { Success = false, Message = json.ToString() };
+            return new ZohoResult { Success = false, Message = $"HTTP {response.StatusCode}: {rawResponse}" };
+
+        var json = JsonSerializer.Deserialize<JsonElement>(rawResponse);
+        if (json.TryGetProperty("error", out var error))
+            return new ZohoResult { Success = false, Message = $"Zoho Error: {error}" };
 
         return new ZohoResult { Success = true, Id = req.ProjectId, Message = "Project updated successfully!" };
     }
@@ -164,19 +174,27 @@ public class ZohoService
     {
         await AuthorizeAsync();
 
-        var body = new Dictionary<string, string>
-        {
-            ["flag"] = "internal"
-        };
+        var body = new Dictionary<string, string>();
         if (req.TaskListName != null) body["name"] = req.TaskListName;
+
+        if (body.Count == 0)
+            return new ZohoResult { Success = false, Message = "No fields provided to update." };
 
         var response = await _http.PostAsync(
             $"{BaseUrl}/projects/{req.ProjectId}/tasklists/{req.TaskListId}/",
             new FormUrlEncodedContent(body));
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        var rawResponse = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"[UpdateTaskList] Status: {response.StatusCode}");
+        Console.WriteLine($"[UpdateTaskList] Body sent: {string.Join(", ", body.Select(k => $"{k.Key}={k.Value}"))}");
+        Console.WriteLine($"[UpdateTaskList] Response: {rawResponse}");
 
         if (!response.IsSuccessStatusCode)
-            return new ZohoResult { Success = false, Message = json.ToString() };
+            return new ZohoResult { Success = false, Message = $"HTTP {response.StatusCode}: {rawResponse}" };
+
+        var json = JsonSerializer.Deserialize<JsonElement>(rawResponse);
+        if (json.TryGetProperty("error", out var error))
+            return new ZohoResult { Success = false, Message = $"Zoho Error: {error}" };
 
         return new ZohoResult { Success = true, Id = req.TaskListId, Message = "Task list updated successfully!" };
     }
@@ -252,19 +270,37 @@ public class ZohoService
         var body = new Dictionary<string, string>();
         if (req.TaskName != null) body["name"] = req.TaskName;
         if (req.Description != null) body["description"] = req.Description;
-        if (req.Status != null) body["status"] = req.Status;
         if (req.Priority != null) body["priority"] = ConvertPriority(req.Priority)!;
         if (req.DueDate != null) body["end_date"] = ConvertDate(req.DueDate)!;
+        if (req.Status != null)
+            body["status"] = req.Status.ToLower() switch
+            {
+                "open" => "Open",
+                "inprogress" => "In Progress",
+                "closed" => "Closed",
+                _ => req.Status
+            };
+
+        if (body.Count == 0)
+            return new ZohoResult { Success = false, Message = "No fields provided to update." };
 
         var response = await _http.PostAsync(
             $"{BaseUrl}/projects/{req.ProjectId}/tasks/{req.TaskId}/",
             new FormUrlEncodedContent(body));
-        var json = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        var rawResponse = await response.Content.ReadAsStringAsync();
+        Console.WriteLine($"[UpdateTask] Status: {response.StatusCode}");
+        Console.WriteLine($"[UpdateTask] Body sent: {string.Join(", ", body.Select(k => $"{k.Key}={k.Value}"))}");
+        Console.WriteLine($"[UpdateTask] Response: {rawResponse}");
 
         if (!response.IsSuccessStatusCode)
-            return new ZohoResult { Success = false, Message = json.ToString() };
+            return new ZohoResult { Success = false, Message = $"HTTP {response.StatusCode}: {rawResponse}" };
 
-        return new ZohoResult { Success = true, Id = req.TaskId, Message = $"Task '{req.TaskId}' updated successfully!" };
+        var json = JsonSerializer.Deserialize<JsonElement>(rawResponse);
+        if (json.TryGetProperty("error", out var error))
+            return new ZohoResult { Success = false, Message = $"Zoho Error: {error}" };
+
+        return new ZohoResult { Success = true, Id = req.TaskId, Message = "Task updated successfully!" };
     }
 
     public async Task<ZohoResult> DeleteTaskAsync(string projectId, string taskId)
